@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Projet INF1007 : jamais publier le fichier F1 original (contient des noms de pilotes)
+donnees/brut/
+
+# Historique généré par l'application (propre à chaque ordinateur)
+historique/predictions.csv
