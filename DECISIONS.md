@@ -4,6 +4,13 @@
 |---|---|---|---|
 | Domaine | Voitures d'occasion | Sport automobile (F1) : le premier sujet était déjà pris. | Oui, 2026-11-10 |
 | Jeu de données | Voitures d'occasion (Audi, Royaume-Uni) | F1DB, résultats de course : 27 731 lignes, licence CC BY 4.0. Noms de pilotes masqués dans la copie publiée. | Oui, 2026-11-10 |
-| Cible et métrique | | Cible : podium. Métrique proposée : F1. | |
-| Modèle | | Proposé : régression logistique. | |
-| Technologie d'interface | | | |
+| Lignes conservées | Garder toutes les lignes ; retirer seulement les valeurs manquantes | On retire les non-partants (DNQ, DNS…), qui n'ont pas couru, et les 127 voitures partagées, qui créent des doublons. Les départs depuis la voie des stands reçoivent la dernière place + 1 au lieu d'être supprimés. Il reste 25 794 lignes. | À présenter |
+| Caractéristiques | Ajouter les points, les tours, l'écart, la raison d'abandon, la position en qualification | On ne garde que l'information connue **avant le départ** : position de départ, année, écurie, motoriste, pneus, circuit, type de circuit. Les points ou les tours donneraient la réponse (fuite de la cible). La position en qualification est presque identique à la position de départ ; on la retire pour ne pas répéter la même information. | À présenter (validation C) |
+| Cible et métrique | Exactitude ; F1 ; prédire la position exacte (régression) | Cible : podium (0/1). Métrique : F1 de la classe podium. Avec 13,6 % de podiums, l'exactitude récompense un modèle qui ne prédit jamais de podium (86 %). | À présenter (validation C) |
+| Références | Classe majoritaire seule | Deux références : la classe majoritaire (F1 = 0) et la règle « podium si départ dans le top 3 » (F1 = 0,549). La deuxième est la vraie barre à franchir. | À présenter (validation C) |
+| Modèle | Régression logistique ; forêt aléatoire ; régression logistique avec `class_weight="balanced"` | Régression logistique. Essais sur le même découpage : forêt F1 = 0,33 et logistique « balanced » F1 = 0,52, toutes deux au seuil de 0,5. La logistique est simple à expliquer et donne des probabilités qu'on peut afficher à l'utilisateur. | À présenter (validation C) |
+| Seuil de décision | Seuil fixe de 0,5 ; seuil choisi sur l'ensemble de test | Seuil choisi par validation croisée à 5 plis sur l'entraînement seulement (0,30). Au seuil de 0,5, le F1 tombe à 0,46, sous la règle du top 3. Choisir le seuil sur le test aurait gonflé le score. | À présenter |
+| Séparation | Aléatoire ; temporelle (entraîner sur avant 2015, tester après) | Aléatoire, stratifiée, graine 42, 20 % de test. Limite notée dans le README : une séparation temporelle serait plus réaliste. | À présenter |
+| Technologie d'interface | Tkinter ; Streamlit ; Gradio | Tkinter : inclus avec Python, fonctionne en local sans serveur. Les exemples officiels de Matplotlib montrent comment y intégrer un graphique (`FigureCanvasTkAgg`). | À présenter (validation D) |
+| Graphique de l'interface | Importance des variables ; matrice de confusion | Courbe de la probabilité de podium selon la position de départ, avec la saisie en rouge. Elle répond à la question « et si je partais plus devant ? », compréhensible par un non-informaticien. | À présenter (validation D) |
+| Historique | JSON ; CSV | CSV : il s'ouvre dans Excel et on y ajoute une ligne sans relire tout le fichier. | — |
