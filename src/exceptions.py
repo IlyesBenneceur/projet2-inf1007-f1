@@ -11,3 +11,7 @@ class DonneeInvalideError(ProjetError):
 
 class FichierIntrouvableError(ProjetError):
     """Levée quand un fichier nécessaire n'existe pas."""
+
+
+class ModeleNonEntraineError(ProjetError):
+    """Levée quand on demande une prédiction à un modèle qui n'a pas été entraîné."""
