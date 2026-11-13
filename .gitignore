@@ -225,3 +225,6 @@ donnees/brut/
 
 # Historique généré par l'application (propre à chaque ordinateur)
 historique/predictions.csv
+# Projet INF1007
+.venv/
+historique/*.csv
