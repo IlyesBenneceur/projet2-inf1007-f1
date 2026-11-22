@@ -10,7 +10,7 @@ import argparse
 import sys
 
 from src.application import Application
-from src.exceptions import FichierIntrouvableError
+from src.exceptions import DonneeInvalideError, FichierIntrouvableError
 
 
 def afficher_resume(metadonnees: dict) -> None:
@@ -42,6 +42,11 @@ def main(arguments: list[str] | None = None) -> int:
     except FichierIntrouvableError as erreur:
         print(f"Erreur : {erreur}")
         print("Si le modèle manque, lancez d'abord : python -m src.main --entrainer")
+        return 1
+    except DonneeInvalideError as erreur:
+        print(f"Erreur : {erreur}")
+        print("Le jeu de données ou les fichiers du modèle sont invalides. "
+              "Réentraînez avec : python -m src.main --entrainer")
         return 1
 
     from src.interface import FenetrePrincipale  # importé ici : Tkinter seulement si besoin

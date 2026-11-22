@@ -21,6 +21,7 @@ class FenetrePrincipale:
     """Fenêtre principale : formulaire à gauche, résultat et graphique à droite."""
 
     def __init__(self, application: Application) -> None:
+        """Reçoit l'application (la logique) et construit la fenêtre : formulaire à gauche, résultat à droite."""
         self._application = application
         self._racine = tk.Tk()
         self._racine.title("Prédicteur de podium F1")
@@ -93,26 +94,40 @@ class FenetrePrincipale:
         self._canevas.get_tk_widget().pack(fill="both", expand=True)
 
     def _lire_saisies(self) -> dict[str, str]:
+        """Renvoie {nom de la variable: texte saisi} pour chaque champ du formulaire."""
         return {nom: valeur.get() for nom, valeur in self._champs.items()}
 
     def _sur_prediction(self) -> None:
         """Bouton « Prédire » : une saisie invalide affiche un message, jamais un plantage."""
         saisies = self._lire_saisies()
         try:
+            valeurs = self._application.valider(saisies)
             resultat = self._application.predire(saisies)
             positions, probabilites = self._application.courbe_selon_position(saisies)
         except DonneeInvalideError as erreur:
             messagebox.showerror("Saisie invalide", str(erreur), parent=self._racine)
             return
+        except OSError as erreur:
+            # Par exemple : predictions.csv ouvert dans Excel, qui verrouille le fichier.
+            messagebox.showerror("Historique inaccessible",
+                                 f"Impossible d'enregistrer la prédiction : {erreur}\n"
+                                 "Fermez predictions.csv s'il est ouvert dans un autre logiciel.",
+                                 parent=self._racine)
+            return
         couleur = "#1a7f37" if resultat.podium_predit else "#444444"
         self._resultat.configure(text=str(resultat), foreground=couleur)
-        position = int(saisies["position_depart"].strip())
+        position = valeurs["position_depart"]
         self._afficher_figure(figure_courbe_probabilite(
             positions, probabilites, position, resultat.probabilite, resultat.seuil))
 
     def _afficher_historique(self) -> None:
         """Ouvre une fenêtre avec le tableau des prédictions passées."""
-        lignes = self._application.historique()
+        try:
+            lignes = self._application.historique()
+        except OSError as erreur:
+            messagebox.showerror("Historique inaccessible",
+                                 f"Impossible de lire l'historique : {erreur}", parent=self._racine)
+            return
         fenetre = tk.Toplevel(self._racine)
         fenetre.title(f"Historique des prédictions ({len(lignes)})")
         if not lignes:

@@ -52,3 +52,9 @@ def test_historique_vide_puis_trie_du_plus_recent(tmp_path):
     lignes = historique.lire()
     assert len(historique) == 2
     assert lignes[0]["horodatage"] >= lignes[1]["horodatage"]
+
+
+def test_position_decimale_acceptee_et_convertie_en_entier(application):
+    valeurs = application.valider({**SAISIES_VALIDES, "position_depart": "2.0"})
+    assert valeurs["position_depart"] == 2
+    assert isinstance(valeurs["position_depart"], int)
