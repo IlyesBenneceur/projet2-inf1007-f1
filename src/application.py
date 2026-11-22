@@ -27,19 +27,23 @@ class ResultatPrediction:
     """Résultat d'une prédiction, formulé pour un non-informaticien."""
 
     def __init__(self, probabilite: float, seuil: float, taux_moyen: float) -> None:
+        """Reçoit la probabilité de podium (0 à 1), le seuil du modèle et le taux moyen de podium."""
         self.probabilite = probabilite
         self.seuil = seuil
         self.taux_moyen = taux_moyen
 
     @property
     def podium_predit(self) -> bool:
+        """Vrai si la probabilité atteint le seuil de décision."""
         return self.probabilite >= self.seuil
 
     @property
     def verdict(self) -> str:
+        """Renvoie « Podium probable » ou « Podium peu probable »."""
         return "Podium probable" if self.podium_predit else "Podium peu probable"
 
     def __str__(self) -> str:
+        """Texte affiché à l'utilisateur : verdict, probabilité et comparaison à la moyenne."""
         if self.probabilite >= self.taux_moyen:
             comparaison = "plus que"
         else:
@@ -68,10 +72,12 @@ class Application:
 
     @property
     def variables(self) -> list[Variable]:
+        """Copie de la liste des variables d'entrée (la liste interne reste protégée)."""
         return list(self._variables)
 
     @property
     def metadonnees(self) -> dict:
+        """Métadonnées du modèle, lues dans le fichier JSON."""
         return self._metadonnees
 
     def valider(self, saisies: dict[str, str]) -> dict[str, int | float | str]:
@@ -118,4 +124,5 @@ class Application:
         return self._historique.lire()
 
     def __repr__(self) -> str:
+        """Représentation pour le débogage : modèle et nombre de variables."""
         return f"Application({self._modele!r}, {len(self._variables)} variables)"

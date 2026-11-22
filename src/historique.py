@@ -43,7 +43,9 @@ class Historique:
 
     @property
     def colonnes(self) -> list[str]:
+        """Copie de la liste des colonnes du fichier CSV."""
         return list(self._colonnes)
 
     def __len__(self) -> int:
+        """Nombre de prédictions enregistrées (relit le fichier)."""
         return len(self.lire())

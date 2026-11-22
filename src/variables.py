@@ -44,11 +44,13 @@ class Variable(ABC):
         """Renvoie la description de la variable pour le fichier JSON de métadonnées."""
 
     def __eq__(self, autre: object) -> bool:
+        """Deux variables sont égales si leurs descriptions (nom, type, bornes ou valeurs) sont identiques."""
         if not isinstance(autre, Variable):
             return NotImplemented
         return self.vers_metadonnees() == autre.vers_metadonnees()
 
     def __str__(self) -> str:
+        """Renvoie le libellé de la variable, tel qu'affiché à l'utilisateur."""
         return self._libelle
 
 
@@ -67,10 +69,12 @@ class VariableNumerique(Variable):
 
     @property
     def minimum(self) -> float:
+        """Plus petite valeur acceptée."""
         return self._minimum
 
     @property
     def maximum(self) -> float:
+        """Plus grande valeur acceptée."""
         return self._maximum
 
     def valider(self, saisie: str) -> int | float:
@@ -96,10 +100,12 @@ class VariableNumerique(Variable):
         return str(int(nombre)) if self._entier else str(nombre)
 
     def vers_metadonnees(self) -> dict:
+        """Renvoie {nom, libelle, type, minimum, maximum, entier} pour le fichier JSON."""
         return {"nom": self._nom, "libelle": self._libelle, "type": "numerique",
                 "minimum": self._minimum, "maximum": self._maximum, "entier": self._entier}
 
     def __repr__(self) -> str:
+        """Représentation pour le débogage : nom et intervalle accepté."""
         return f"VariableNumerique({self._nom!r}, [{self._minimum}, {self._maximum}])"
 
 
@@ -129,10 +135,12 @@ class VariableCategorielle(Variable):
         return texte
 
     def vers_metadonnees(self) -> dict:
+        """Renvoie {nom, libelle, type, valeurs} pour le fichier JSON."""
         return {"nom": self._nom, "libelle": self._libelle, "type": "categorielle",
                 "valeurs": self._valeurs}
 
     def __repr__(self) -> str:
+        """Représentation pour le débogage : nom et nombre de valeurs possibles."""
         return f"VariableCategorielle({self._nom!r}, {len(self._valeurs)} valeurs)"
 
 

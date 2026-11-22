@@ -206,4 +206,5 @@ class JeuDeDonnees:
         return 0 if self._propre is None else len(self._propre)
 
     def __repr__(self) -> str:
+        """Représentation pour le débogage : chemin du CSV et nombre de lignes propres."""
         return f"JeuDeDonnees(chemin={self._chemin!r}, lignes={len(self)})"

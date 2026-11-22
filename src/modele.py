@@ -28,7 +28,8 @@ def chronometrer(fonction: Callable) -> Callable:
     fonction est renvoyé tel quel.
     """
     @functools.wraps(fonction)
-    def enveloppe(*args, **kwargs):
+    def enveloppe(*args: object, **kwargs: object) -> object:
+        """Appelle la fonction d'origine, mémorise sa durée et renvoie son résultat."""
         debut = time.perf_counter()
         resultat = fonction(*args, **kwargs)
         enveloppe.derniere_duree = time.perf_counter() - debut
@@ -113,6 +114,7 @@ class ModelePodium:
 
     @property
     def est_entraine(self) -> bool:
+        """Vrai si le modèle a été entraîné (ou rechargé après un entraînement)."""
         return self._entraine
 
     @chronometrer
@@ -130,6 +132,7 @@ class ModelePodium:
         self._entraine = True
 
     def _verifier_entraine(self) -> None:
+        """Ne renvoie rien. Lève ModeleNonEntraineError si le modèle n'est pas entraîné."""
         if not self._entraine:
             raise ModeleNonEntraineError("Le modèle doit être entraîné avant de prédire.")
 
@@ -174,6 +177,7 @@ class ModelePodium:
         return modele
 
     def __repr__(self) -> str:
+        """Représentation pour le débogage : nombre de variables et seuil, ou « non entraîné »."""
         etat = f"seuil={self._seuil}" if self._entraine else "non entraîné"
         return f"ModelePodium({len(self.colonnes)} variables, {etat})"
 
