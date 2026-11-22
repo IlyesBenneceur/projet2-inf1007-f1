@@ -23,7 +23,7 @@ def test_bornes_de_l_intervalle_acceptees(depart):
     assert depart.valider("34") == 34
 
 
-@pytest.mark.parametrize("saisie", ["", "   ", "trois", "0", "35", "2.5", "-1"])
+@pytest.mark.parametrize("saisie", ["", "   ", "trois", "0", "35", "2.5", "-1", "nan", "inf"])
 def test_saisies_numeriques_invalides(depart, saisie):
     with pytest.raises(DonneeInvalideError):
         depart.valider(saisie)

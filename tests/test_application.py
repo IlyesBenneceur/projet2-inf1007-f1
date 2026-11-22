@@ -1,3 +1,6 @@
+import json
+import shutil
+
 import pytest
 
 from src.application import Application, ResultatPrediction
@@ -47,11 +50,42 @@ def test_verdict_selon_le_seuil():
 def test_historique_vide_puis_trie_du_plus_recent(tmp_path):
     historique = Historique(str(tmp_path / "h.csv"), ["x"])
     assert historique.lire() == []
-    historique.ajouter({"x": 1}, 0.1, "a")
-    historique.ajouter({"x": 2}, 0.2, "b")
-    lignes = historique.lire()
-    assert len(historique) == 2
-    assert lignes[0]["horodatage"] >= lignes[1]["horodatage"]
+    for x in (1, 2, 3):  # trois ajouts dans la même seconde
+        historique.ajouter({"x": x}, 0.1, "a")
+    assert len(historique) == 3
+    assert [ligne["x"] for ligne in historique.lire()] == ["3", "2", "1"]
+
+
+def test_historique_illisible_leve_une_erreur_claire(tmp_path):
+    chemin = tmp_path / "h.csv"
+    chemin.write_bytes("horodatage,écurie\n2026-01-01T00:00:00,é\n".encode("cp1252"))
+    with pytest.raises(DonneeInvalideError):
+        Historique(str(chemin), ["x"]).lire()
+
+
+def _copier_modele(source, tmp_path):
+    """Copie le dossier du modèle entraîné pour pouvoir l'abîmer dans un test."""
+    copie = tmp_path / "copie"
+    shutil.copytree(source, copie)
+    return copie
+
+
+@pytest.mark.parametrize("cle", ["variables", "taux_podium", "scores_test"])
+def test_metadonnees_incompletes_refusees(dossier_modele_entraine, tmp_path, cle):
+    copie = _copier_modele(dossier_modele_entraine, tmp_path)
+    chemin = copie / "metadonnees.json"
+    meta = json.loads(chemin.read_text(encoding="utf-8"))
+    del meta[cle]
+    chemin.write_text(json.dumps(meta), encoding="utf-8")
+    with pytest.raises(DonneeInvalideError, match=cle):
+        Application(str(copie), str(tmp_path / "h.csv"))
+
+
+def test_metadonnees_qui_ne_sont_pas_un_dictionnaire(dossier_modele_entraine, tmp_path):
+    copie = _copier_modele(dossier_modele_entraine, tmp_path)
+    (copie / "metadonnees.json").write_text("[1, 2]", encoding="utf-8")
+    with pytest.raises(DonneeInvalideError):
+        Application(str(copie), str(tmp_path / "h.csv"))
 
 
 def test_position_decimale_acceptee_et_convertie_en_entier(application):

@@ -45,6 +45,26 @@ def test_depart_voie_des_stands_place_derriere_la_grille(brut):
     assert resultat.loc[0, "gridPositionNumber"] == 11
 
 
+def test_deux_departs_voie_des_stands_dans_la_meme_course(brut):
+    brut.loc[[0, 1], ["gridPositionText", "gridPositionNumber"]] = ["PL", None]
+    resultat = imputer_depart_voie_des_stands(brut)
+    # Grille restante de la course 1 : 3 à 10, donc les deux reçoivent 11.
+    assert list(resultat.loc[[0, 1], "gridPositionNumber"]) == [11, 11]
+
+
+def test_course_sans_grille_retiree(brut):
+    sans_grille = brut["raceId"] == 1
+    brut.loc[sans_grille, ["gridPositionText", "gridPositionNumber"]] = ["", None]
+    assert len(nettoyer(brut)) == len(brut) - sans_grille.sum()
+
+
+def test_csv_vide_leve_une_erreur_claire(tmp_path):
+    vide = tmp_path / "vide.csv"
+    vide.write_text("", encoding="utf-8")
+    with pytest.raises(DonneeInvalideError):
+        charger_csv(str(vide))
+
+
 def test_nettoyer_cree_la_cible_podium(brut):
     brut.loc[0, ["positionText", "positionNumber"]] = ["DNF", None]
     propre = nettoyer(brut)

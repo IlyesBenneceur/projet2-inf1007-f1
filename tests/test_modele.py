@@ -87,6 +87,16 @@ def test_metadonnees_contiennent_scores_et_variables(dossier_modele_entraine):
     assert meta["references_f1"]["majoritaire"] == 0.0
 
 
+@pytest.mark.parametrize("contenu", [b"bonjour", b""])
+def test_modele_corrompu_refuse(dossier_modele_entraine, tmp_path, contenu):
+    with open(f"{dossier_modele_entraine}/modele_podium.joblib", "rb") as fichier:
+        debut = fichier.read(500)
+    corrompu = tmp_path / "corrompu.joblib"
+    corrompu.write_bytes(contenu or debut)  # texte, ou fichier tronqué
+    with pytest.raises(DonneeInvalideError):
+        ModelePodium.charger(str(corrompu))
+
+
 def test_fichiers_absents_ou_invalides(tmp_path):
     with pytest.raises(FichierIntrouvableError):
         ModelePodium.charger(str(tmp_path / "absent.joblib"))
