@@ -36,9 +36,9 @@ Il reste **25 794 lignes**, dont 13,6 % de podiums.
 ```bash
 git clone https://github.com/IlyesBenneceur/projet2-inf1007-f1.git
 cd projet2-inf1007-f1
-python3 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate          # Windows : .venv\Scripts\activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 python -m src.main                 # lance l'interface (le modèle est déjà dans modeles/)
 python -m src.main --entrainer     # (optionnel) ré-entraîne le modèle et régénère les graphiques
@@ -78,10 +78,14 @@ tests/               # tests pytest
   `Historique`.
 - **Encapsulation :** les attributs sont protégés (`_seuil`, `_valeurs`, `_pipeline`, etc.)
   et exposés en lecture seulement par des propriétés.
-- **Méthodes spéciales :** `__eq__`, `__str__` et `__repr__` dans `Variable` ;
-  `__len__` et `__repr__` dans `JeuDeDonnees` ; `__str__` dans `ResultatPrediction`.
+- **Méthodes spéciales :** `__eq__` et `__str__` dans `Variable`, `__repr__` dans ses deux
+  classes enfants ; `__len__` et `__repr__` dans `JeuDeDonnees` ; `__len__` dans `Historique` ;
+  `__str__` dans `ResultatPrediction`.
 - **Séparation calcul / affichage :** `interface.py` ne fait qu'appeler `Application`. Toute
   la logique est testable sans fenêtre.
+- **Gestion des erreurs :** une saisie vide, non numérique ou hors intervalle, un historique
+  impossible à écrire (par exemple `predictions.csv` ouvert dans Excel) ou des fichiers du
+  modèle invalides produisent un message clair, jamais un traceback.
 
 **Outils du chapitre 7**
 
@@ -131,12 +135,13 @@ Précision 0,49, rappel 0,72, exactitude 0,86. La matrice de confusion est dans
 
 ## Tests et couverture
 
-49 tests pytest, répartis en 4 fichiers :
+50 tests pytest, répartis en 5 fichiers :
 
 - `test_donnees.py` ;
 - `test_variables.py` ;
 - `test_modele.py` ;
-- `test_application.py`.
+- `test_application.py` ;
+- `test_exceptions.py`.
 
 Ils couvrent des cas usuels, des cas limites (bornes des intervalles, fichier vide, aucun
 positif) et des cas d'erreur (`pytest.raises`). Les tests utilisent un petit jeu synthétique
@@ -148,7 +153,7 @@ python -m coverage report --omit=src/interface.py,src/main.py
 ```
 
 **Couverture de la logique (hors interface et main) : 94 %.** En incluant `interface.py` et
-`main.py`, qui ne sont pas testés automatiquement, la couverture est de 74 %.
+`main.py`, qui ne sont pas testés automatiquement, la couverture est de 73 %.
 
 ## Documentation officielle consultée
 
