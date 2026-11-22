@@ -5,6 +5,7 @@ from __future__ import annotations
 import functools
 import json
 import os
+import pickle
 import time
 from collections.abc import Callable
 
@@ -99,7 +100,7 @@ class ModelePodium:
         ])
         self._pipeline = Pipeline([
             ("pretraitement", pretraitement),
-            ("regression", LogisticRegression(max_iter=2000)),
+            ("regression", LogisticRegression(max_iter=2000, random_state=self._graine)),
         ])
 
     @property
@@ -167,11 +168,17 @@ class ModelePodium:
         """Recharge un modèle sauvegardé.
 
         Lève FichierIntrouvableError si le fichier n'existe pas et
-        DonneeInvalideError s'il ne contient pas un ModelePodium.
+        DonneeInvalideError s'il est corrompu ou ne contient pas un ModelePodium.
         """
         if not os.path.isfile(chemin):
             raise FichierIntrouvableError(f"Modèle introuvable : {chemin}")
-        modele = joblib.load(chemin)
+        try:
+            modele = joblib.load(chemin)
+        except (pickle.UnpicklingError, EOFError, ValueError, IndexError, KeyError,
+                AttributeError, ImportError) as erreur:
+            raise DonneeInvalideError(
+                f"Le modèle {chemin} est illisible ou corrompu ({type(erreur).__name__})."
+            ) from None
         if not isinstance(modele, cls):
             raise DonneeInvalideError(f"{chemin} ne contient pas un ModelePodium.")
         return modele

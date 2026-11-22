@@ -218,7 +218,7 @@ class FenetrePrincipale:
         """Ouvre une fenêtre avec le tableau des prédictions passées."""
         try:
             lignes = self._application.historique()
-        except OSError as erreur:
+        except (OSError, DonneeInvalideError) as erreur:
             messagebox.showerror("Historique inaccessible",
                                  f"Impossible de lire l'historique : {erreur}", parent=self._racine)
             return

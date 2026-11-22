@@ -6,6 +6,8 @@ import csv
 import os
 from datetime import datetime
 
+from src.exceptions import DonneeInvalideError
+
 
 class Historique:
     """Ajoute et relit les prédictions dans un fichier CSV."""
@@ -34,12 +36,19 @@ class Historique:
         """Renvoie toutes les prédictions, de la plus récente à la plus ancienne.
 
         Renvoie une liste vide si le fichier n'existe pas encore.
+        Lève DonneeInvalideError si le fichier est illisible (par exemple
+        réenregistré par Excel dans un autre encodage).
+        Les lignes sont ajoutées dans l'ordre chronologique : on inverse simplement
+        la liste, ce qui reste juste même pour deux prédictions dans la même seconde.
         """
         if not os.path.isfile(self._chemin):
             return []
-        with open(self._chemin, newline="", encoding="utf-8") as fichier:
-            lignes = list(csv.DictReader(fichier))
-        return sorted(lignes, key=lambda ligne: ligne["horodatage"], reverse=True)
+        try:
+            with open(self._chemin, newline="", encoding="utf-8") as fichier:
+                lignes = list(csv.DictReader(fichier))
+        except (UnicodeDecodeError, csv.Error) as erreur:
+            raise DonneeInvalideError(f"Historique illisible : {erreur}") from None
+        return list(reversed(lignes))
 
     @property
     def colonnes(self) -> list[str]:

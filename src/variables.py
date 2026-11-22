@@ -148,8 +148,11 @@ def variable_depuis_metadonnees(description: dict) -> Variable:
     """Construit la bonne sous-classe de Variable à partir de sa description JSON.
 
     Reçoit un dictionnaire produit par vers_metadonnees(). Renvoie une Variable.
-    Lève DonneeInvalideError si le type est inconnu ou si une clé manque.
+    Lève DonneeInvalideError si la description n'est pas un dictionnaire,
+    si le type est inconnu ou si une clé manque.
     """
+    if not isinstance(description, dict):
+        raise DonneeInvalideError("Métadonnées invalides : chaque variable doit être un dictionnaire.")
     try:
         if description["type"] == "numerique":
             return VariableNumerique(description["nom"], description["libelle"],

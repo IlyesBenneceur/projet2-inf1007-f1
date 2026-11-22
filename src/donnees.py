@@ -57,14 +57,18 @@ def lire_par_blocs(chemin: str, taille_bloc: int = 5000) -> Iterator[pd.DataFram
     Reçoit le chemin du CSV et la taille des blocs (entier > 0).
     Produit (yield) un DataFrame par bloc, sans charger tout le fichier d'un coup.
     Lève FichierIntrouvableError si le fichier n'existe pas et
-    DonneeInvalideError si la taille de bloc n'est pas positive.
+    DonneeInvalideError si la taille de bloc n'est pas positive ou si le
+    fichier est vide ou illisible.
     """
     if taille_bloc <= 0:
         raise DonneeInvalideError("La taille de bloc doit être positive.")
     verifier_fichier(chemin)
-    with pd.read_csv(chemin, chunksize=taille_bloc) as lecteur:
-        for bloc in lecteur:
-            yield bloc
+    try:
+        with pd.read_csv(chemin, chunksize=taille_bloc) as lecteur:
+            for bloc in lecteur:
+                yield bloc
+    except (pd.errors.EmptyDataError, pd.errors.ParserError, UnicodeDecodeError) as erreur:
+        raise DonneeInvalideError(f"Le fichier {chemin} est vide ou illisible : {erreur}") from None
 
 
 def charger_csv(chemin: str = CHEMIN_DONNEES, taille_bloc: int = 5000) -> pd.DataFrame:
@@ -129,7 +133,8 @@ def nettoyer(donnees: pd.DataFrame) -> pd.DataFrame:
     Lève DonneeInvalideError s'il ne reste aucune ligne après nettoyage.
     """
     partants = imputer_depart_voie_des_stands(retirer_non_partants(donnees))
-    # Quelques courses anciennes n'ont pas de grille connue : on les retire.
+    # 29 lignes n'ont pas de position de départ connue (dont 26 Tyrrell disqualifiées
+    # en 1984) : on les retire.
     partants = partants.dropna(subset=["gridPositionNumber"])
     partants[CIBLE] = creer_cible(partants)
     propre = partants.rename(columns=RENOMMAGE)

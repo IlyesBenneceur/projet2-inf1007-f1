@@ -48,6 +48,8 @@ def entrainer_et_sauvegarder(chemin_donnees: str = CHEMIN_DONNEES,
     Renvoie le dictionnaire des métadonnées écrit dans le JSON.
     Lève FichierIntrouvableError si le CSV est absent.
     """
+    os.makedirs(dossier_modeles, exist_ok=True)
+    os.makedirs(dossier_graphiques, exist_ok=True)
     jeu = JeuDeDonnees(chemin_donnees)
     jeu.charger()
     figure_taux_podium_par_depart(jeu.donnees).savefig(

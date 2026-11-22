@@ -21,6 +21,30 @@ DOSSIER_MODELES = os.path.join(DOSSIER_RACINE, "modeles")
 CHEMIN_HISTORIQUE = os.path.join(DOSSIER_RACINE, "historique", "predictions.csv")
 NOM_MODELE = "modele_podium.joblib"
 NOM_METADONNEES = "metadonnees.json"
+# Clés du JSON utilisées par l'application et par l'interface.
+CLES_METADONNEES = ("modele", "taux_podium", "scores_test", "references_f1", "variables")
+
+
+def verifier_metadonnees(metadonnees: object) -> dict:
+    """Vérifie que les métadonnées lues dans le JSON sont utilisables.
+
+    Reçoit l'objet lu dans le JSON. Le renvoie tel quel s'il est valide.
+    Lève DonneeInvalideError si ce n'est pas un dictionnaire, s'il manque une clé
+    ou si la liste des variables ne contient pas la position de départ.
+    """
+    if not isinstance(metadonnees, dict):
+        raise DonneeInvalideError("Les métadonnées doivent être un objet JSON (dictionnaire).")
+    manquantes = [cle for cle in CLES_METADONNEES if cle not in metadonnees]
+    if manquantes:
+        raise DonneeInvalideError(f"Métadonnées incomplètes : {', '.join(manquantes)} manquant(s).")
+    if not isinstance(metadonnees["scores_test"], dict) or "f1" not in metadonnees["scores_test"]:
+        raise DonneeInvalideError("Métadonnées incomplètes : score F1 du test manquant.")
+    if (not isinstance(metadonnees["references_f1"], dict)
+            or "depart_top3" not in metadonnees["references_f1"]):
+        raise DonneeInvalideError("Métadonnées incomplètes : référence « départ top 3 » manquante.")
+    if not isinstance(metadonnees["variables"], list):
+        raise DonneeInvalideError("Métadonnées invalides : « variables » doit être une liste.")
+    return metadonnees
 
 
 class ResultatPrediction:
@@ -60,14 +84,18 @@ class Application:
                  chemin_historique: str = CHEMIN_HISTORIQUE) -> None:
         """Charge le modèle et ses métadonnées.
 
-        Lève FichierIntrouvableError si le modèle n'a pas encore été entraîné.
+        Lève FichierIntrouvableError si le modèle n'a pas encore été entraîné et
+        DonneeInvalideError si le modèle ou ses métadonnées sont invalides.
         """
-        self._metadonnees = lire_metadonnees(os.path.join(dossier_modeles, NOM_METADONNEES))
+        self._metadonnees = verifier_metadonnees(
+            lire_metadonnees(os.path.join(dossier_modeles, NOM_METADONNEES)))
         self._modele = ModelePodium.charger(os.path.join(dossier_modeles, NOM_MODELE))
         self._variables: list[Variable] = [
             variable_depuis_metadonnees(description)
             for description in self._metadonnees["variables"]
         ]
+        if "position_depart" not in [v.nom for v in self._variables]:
+            raise DonneeInvalideError("Métadonnées incomplètes : variable position_depart absente.")
         self._historique = Historique(chemin_historique, [v.nom for v in self._variables])
 
     @property
